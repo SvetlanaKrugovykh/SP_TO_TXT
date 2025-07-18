@@ -1,0 +1,61 @@
+# .gitignore for Speech-to-Text Service
+
+# Environment files
+.env*
+.venv/
+venv/
+env/
+python-env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+uploads/
+output/
+temp/
+certs/
+
+# Dependencies
+node_modules/
+
+# Build artifacts
+build/
+dist/
+
+# Log files
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Third party
+third_party/
+
+# Keys and sensitive data
+keys/
+data/
+path/
+
+# Docker
+Dockerfile.prod
+
+# Backup files
+form_old_src/
+*_backup*
+*.bak
+
+# Test files
+test/
