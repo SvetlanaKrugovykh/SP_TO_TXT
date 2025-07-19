@@ -27,12 +27,13 @@ def generate_filename(segment_number, clientId):
     segment_name = os.getenv('SEGMENT_NAME', 'segment')
     return f"{clientId}_{segment_name}_{segment_number}.wav"
     
-def transcribe_audio(file_path: str) -> Tuple[Optional[str], Optional[str]]:
+def transcribe_audio(file_path: str, language: Optional[str] = None) -> Tuple[Optional[str], Optional[str]]:
     """
     Transcribe audio file using faster-whisper service
     
     Args:
         file_path: Path to audio file
+        language: Language code (None for auto-detection, e.g., 'pl', 'ru', 'en')
         
     Returns:
         Tuple of (transcription_text, error_message)
@@ -44,7 +45,7 @@ def transcribe_audio(file_path: str) -> Tuple[Optional[str], Optional[str]]:
             return None, "Failed to convert audio to WAV format"
         
         # Transcribe using the optimized service
-        transcription, error = whisper_service.transcribe(wav_file_path)
+        transcription, error = whisper_service.transcribe(wav_file_path, language)
         
         if error:
             print(f"Error in audio transcription: {error}")

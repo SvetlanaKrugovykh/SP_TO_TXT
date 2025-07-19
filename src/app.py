@@ -132,7 +132,33 @@ async def transcribe_endpoint(
         file: Audio file to transcribe
         client_id: Client identifier
         segment_number: Segment number for file naming
-        language: Language code (optional, auto-detect if None)
+        language: Language code (optional). Examples:
+                 'pl' - Polish, 'ru' - Russian, 'en' - English, 'de' - German,
+                 'fr' - French, 'es' - Spanish, 'it' - Italian, 'pt' - Portuguese,
+                 'nl' - Dutch, 'sv' - Swedish, 'da' - Danish, 'no' - Norwegian,
+                 'fi' - Finnish, 'cs' - Czech, 'sk' - Slovak, 'hu' - Hungarian,
+                 'ro' - Romanian, 'bg' - Bulgarian, 'hr' - Croatian, 'sl' - Slovenian,
+                 'et' - Estonian, 'lv' - Latvian, 'lt' - Lithuanian, 'uk' - Ukrainian,
+                 'be' - Belarusian, 'mk' - Macedonian, 'sr' - Serbian, 'bs' - Bosnian,
+                 'mt' - Maltese, 'cy' - Welsh, 'ga' - Irish, 'is' - Icelandic,
+                 'eu' - Basque, 'ca' - Catalan, 'gl' - Galician, 'ast' - Asturian,
+                 'ar' - Arabic, 'he' - Hebrew, 'tr' - Turkish, 'fa' - Persian,
+                 'ur' - Urdu, 'hi' - Hindi, 'bn' - Bengali, 'ta' - Tamil,
+                 'te' - Telugu, 'kn' - Kannada, 'ml' - Malayalam, 'si' - Sinhala,
+                 'th' - Thai, 'lo' - Lao, 'my' - Myanmar, 'km' - Khmer,
+                 'ka' - Georgian, 'am' - Amharic, 'ne' - Nepali, 'mr' - Marathi,
+                 'gu' - Gujarati, 'pa' - Punjabi, 'or' - Odia, 'as' - Assamese,
+                 'zh' - Chinese, 'ja' - Japanese, 'ko' - Korean, 'vi' - Vietnamese,
+                 'id' - Indonesian, 'ms' - Malay, 'tl' - Tagalog, 'jw' - Javanese,
+                 'su' - Sundanese, 'mg' - Malagasy, 'sw' - Swahili, 'yo' - Yoruba,
+                 'ha' - Hausa, 'zu' - Zulu, 'af' - Afrikaans, 'sq' - Albanian,
+                 'az' - Azerbaijani, 'hy' - Armenian, 'kk' - Kazakh, 'ky' - Kyrgyz,
+                 'uz' - Uzbek, 'tj' - Tajik, 'mn' - Mongolian, 'tt' - Tatar,
+                 'ba' - Bashkir, 'sah' - Yakut, 'fo' - Faroese, 'br' - Breton,
+                 'oc' - Occitan, 'la' - Latin, 'sa' - Sanskrit, 'yi' - Yiddish,
+                 'haw' - Hawaiian, 'mi' - Maori, 'ln' - Lingala, 'so' - Somali,
+                 'sn' - Shona, 'lb' - Luxembourgish
+                 Use 'auto' or omit for automatic detection.
     """
     start_time = time.time()
     service_stats['total_requests'] += 1
@@ -143,8 +169,16 @@ async def transcribe_endpoint(
         # Handle file upload
         filepath, filename = handle_file_upload(client_id, file, segment_number)
         
+        # Process language parameter
+        target_language = None
+        if language and language.lower() not in ['auto', 'none', '']:
+            target_language = language.lower()
+            print(f"🌍 Using specified language: {target_language}")
+        else:
+            print("🌍 Using auto-detection")
+        
         # Transcribe audio
-        transcription, error = transcribe_audio(filepath)
+        transcription, error = transcribe_audio(filepath, target_language)
         
         if error:
             service_stats['failed_requests'] += 1
@@ -170,7 +204,8 @@ async def transcribe_endpoint(
             "translated_text": transcription,
             "processing_time": round(process_time, 2),
             "filename": filename,
-            "segment_number": segment_number
+            "segment_number": segment_number,
+            "language": target_language if target_language else "auto-detected"
         }
         
     except HTTPException:
@@ -184,12 +219,13 @@ async def transcribe_endpoint(
 async def transformation_flow(
     file: UploadFile = File(...),
     clientId: str = Form(...),  
-    segment_number: str = Form(default='unknown')
+    segment_number: str = Form(default='unknown'),
+    language: Optional[str] = Form(default=None)
 ):
     """
     Legacy endpoint for backward compatibility
     """
-    return await transcribe_endpoint(file, clientId, segment_number)
+    return await transcribe_endpoint(file, clientId, segment_number, language)
 
 @app.get("/stats")
 async def get_stats():

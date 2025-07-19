@@ -124,7 +124,39 @@ def test_service():
                 print(f"✅ Transcription successful")
                 print(f"   Processing time: {result.get('processing_time', 0):.2f}s")
                 print(f"   Total time: {end_time - start_time:.2f}s")
+                print(f"   Language: {result.get('language', 'unknown')}")
                 print(f"   Text: {result.get('translated_text', '')[:100]}...")
+                
+                # Test with specific language
+                print(f"\n6. Testing Polish transcription with same file...")
+                
+                files = {
+                    'file': (test_file.name, open(test_file, 'rb'), 'audio/wav')
+                }
+                
+                data = {
+                    'client_id': 'test_client',
+                    'segment_number': '2',
+                    'language': 'pl'
+                }
+                
+                start_time = time.time()
+                response = requests.post(f"{base_url}/transcribe", files=files, data=data)
+                end_time = time.time()
+                
+                files['file'][1].close()  # Close file
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    print(f"✅ Polish transcription successful")
+                    print(f"   Processing time: {result.get('processing_time', 0):.2f}s")
+                    print(f"   Total time: {end_time - start_time:.2f}s")
+                    print(f"   Language: {result.get('language', 'unknown')}")
+                    print(f"   Text: {result.get('translated_text', '')[:100]}...")
+                else:
+                    print(f"❌ Polish transcription failed: {response.status_code}")
+                    print(f"   Error: {response.text}")
+                    
             else:
                 print(f"❌ Transcription failed: {response.status_code}")
                 print(f"   Error: {response.text}")

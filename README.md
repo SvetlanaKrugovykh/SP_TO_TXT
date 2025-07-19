@@ -15,7 +15,7 @@ A high-performance speech-to-text service built with faster-whisper for real-tim
   - File queue processor for batch processing
 - **🚀 Multi-threading** - Parallel processing for high performance
 - **🎵 Format Support** - MP3, OGG, WAV, M4A, FLAC, AAC, MP4
-- **🌍 Auto Language Detection** - Supports 39 languages
+- **🌍 Language Support** - Auto detection + 80+ specific languages (pl, ru, en, de, fr, etc.)
 - **📊 Real-time Monitoring** - Built-in statistics and health checks
 
 ## 📋 Requirements
@@ -106,49 +106,23 @@ python batch_process.py /path/to/audio/files /path/to/output
 # Health check
 curl http://localhost:8338/health
 
-# Send file for transcription
+# Send file for transcription (auto-detect language)
 curl -X POST http://localhost:8338/transcribe \
   -F "file=@audio.wav" \
   -F "client_id=test" \
   -F "segment_number=1"
-```
 
-## � Telegram Bot Integration
+# Send file for transcription with specific language (Polish)
+curl -X POST http://localhost:8338/transcribe \
+  -F "file=@audio.wav" \
+  -F "client_id=test" \
+  -F "segment_number=1" \
+  -F "language=pl"
 
-```python
-import requests
-import telebot
-import io
-
-bot = telebot.TeleBot("YOUR_BOT_TOKEN")
-
-@bot.message_handler(content_types=['voice', 'audio'])
-def handle_voice(message):
-    try:
-        # Download audio file
-        file_info = bot.get_file(message.voice.file_id)
-        audio_data = bot.download_file(file_info.file_path)
-        
-        # Send to transcription service
-        files = {'file': ('voice.ogg', io.BytesIO(audio_data), 'audio/ogg')}
-        data = {
-            'client_id': str(message.from_user.id),
-            'segment_number': str(message.message_id)
-        }
-        
-        response = requests.post('http://localhost:8338/transcribe', files=files, data=data)
-        
-        if response.status_code == 200:
-            result = response.json()
-            bot.reply_to(message, f"🎵➡️📝 {result['translated_text']}")
-        else:
-            bot.reply_to(message, "❌ Error processing audio")
-            
-    except Exception as e:
-        bot.reply_to(message, "❌ An error occurred")
-        print(f"Error: {e}")
-
-bot.polling()
+# Supported languages include:
+# pl (Polish), ru (Russian), en (English), de (German), fr (French), 
+# es (Spanish), it (Italian), pt (Portuguese), nl (Dutch), sv (Swedish),
+# and 70+ more languages - see endpoint docs for full list
 ```
 
 ## 📊 Performance
