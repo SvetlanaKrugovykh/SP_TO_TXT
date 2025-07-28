@@ -73,10 +73,15 @@ async def startup_event():
     
     # Pre-load the model
     print("📥 Pre-loading whisper model...")
-    if whisper_service.is_ready():
-        print("✅ Whisper model loaded successfully")
-    else:
-        print("❌ Failed to load whisper model")
+    try:
+        # Force model loading
+        whisper_service._load_model()
+        if whisper_service.model is not None:
+            print("✅ Whisper model loaded successfully")
+        else:
+            print("❌ Failed to load whisper model")
+    except Exception as e:
+        print(f"❌ Error loading whisper model: {e}")
     
     # Start file queue processor
     file_queue_processor = FileQueueProcessor()
