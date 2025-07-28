@@ -51,18 +51,17 @@ def get_local_ips():
 local_ips = get_local_ips()
 print(f"🌐 Local IPs: {local_ips}")
 
-# TEMPORARILY DISABLED FOR REMOTE ACCESS
-# @app.middleware("http")
-# async def check_request_origin(request: Request, call_next):
-#     """Security middleware to check request origin"""
-#     client_host = request.client.host
-#     if client_host not in local_ips:
-#         raise HTTPException(
-#             status_code=403, 
-#             detail="Forbidden: requests from this host are not allowed"
-#         )
-#     response = await call_next(request)
-#     return response
+@app.middleware("http")
+async def check_request_origin(request: Request, call_next):
+    """Security middleware to check request origin"""
+    client_host = request.client.host
+    if client_host not in local_ips:
+        raise HTTPException(
+            status_code=403, 
+            detail="Forbidden: requests from this host are not allowed"
+        )
+    response = await call_next(request)
+    return response
 
 @app.on_event("startup")
 async def startup_event():
