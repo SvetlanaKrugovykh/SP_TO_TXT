@@ -1,0 +1,27 @@
+[Unit]
+Description=Speech-to-Text Service
+After=network.target
+
+[Service]
+Type=simple
+User=your_username
+Group=your_username
+WorkingDirectory=/path/to/SP_TO_TXT
+Environment=PATH=/path/to/SP_TO_TXT/.venv/bin
+ExecStart=/path/to/SP_TO_TXT/.venv/bin/python start_service.py
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=speech-to-text
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/path/to/SP_TO_TXT/uploads /path/to/SP_TO_TXT/output
+
+[Install]
+WantedBy=multi-user.target
