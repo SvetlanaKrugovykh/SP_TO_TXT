@@ -55,7 +55,9 @@ print(f"🌐 Local IPs: {local_ips}")
 async def check_request_origin(request: Request, call_next):
     """Security middleware to check request origin"""
     client_host = request.client.host
+    print(f"🔗 Incoming connection from: {client_host}")
     if client_host not in local_ips:
+        print(f"⛔ Access denied for: {client_host}")
         raise HTTPException(
             status_code=403, 
             detail="Forbidden: requests from this host are not allowed"
@@ -170,6 +172,7 @@ async def transcribe_endpoint(
     
     try:
         print(f"🎵 Request - File: {file.filename}, Client: {client_id}, Segment: {segment_number}")
+        print(f"🆔 client_id: {client_id}, 🌐 language: {language}")
         
         # Handle file upload
         filepath, filename = handle_file_upload(client_id, file, segment_number)
@@ -230,6 +233,7 @@ async def transformation_flow(
     """
     Legacy endpoint for backward compatibility
     """
+    print(f"🆔 clientId: {clientId}, 🌐 language: {language}")
     return await transcribe_endpoint(file, clientId, segment_number, language)
 
 @app.get("/stats")
