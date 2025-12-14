@@ -1,0 +1,20 @@
+<service>
+  <id>OllamaServe</id>
+  <name>OllamaServe</name>
+  <description>Runs start_ollama0.ps1 with GPU config</description>
+
+  <executable>C:\Ollama\run\start_ollama.bat</executable>
+  <arguments></arguments>
+  <workingdirectory>C:\Ollama</workingdirectory>
+
+  <env name="OLLAMA_CONFIG" value="C:\Ollama\config\ollama.yaml"/>
+  <env name="OLLAMA_HOST" value="0.0.0.0:11434"/>
+
+  <logpath>C:\logs\ollama</logpath>
+  <log mode="roll-by-size">
+    <sizeThreshold>10485760</sizeThreshold>
+    <keepFiles>5</keepFiles>
+  </log>
+
+  <onfailure action="restart" delay="10 sec"/>
+</service>

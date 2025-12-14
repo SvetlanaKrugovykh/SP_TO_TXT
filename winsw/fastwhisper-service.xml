@@ -1,0 +1,17 @@
+<service>
+  <id>FastWhisperService</id>
+  <name>FastWhisperService</name>
+  <description>Runs FastWhisper Speech-to-Text Service</description>
+
+  <executable>D:\01_PythonProjects\07_SP_TO_TXT_Service\.venv\Scripts\python.exe</executable>
+  <arguments>D:\01_PythonProjects\07_SP_TO_TXT_Service\src\app.py</arguments>
+  <workingdirectory>D:\01_PythonProjects\07_SP_TO_TXT_Service</workingdirectory>
+
+  <logpath>D:\01_PythonProjects\07_SP_TO_TXT_Service\logs</logpath>
+  <log mode="roll-by-size">
+    <sizeThreshold>10485760</sizeThreshold>
+    <keepFiles>5</keepFiles>
+  </log>
+
+  <onfailure action="restart" delay="10 sec"/>
+</service>

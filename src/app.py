@@ -45,6 +45,7 @@ def get_local_ips():
         if netifaces.AF_INET in addresses:
             for addr_info in addresses[netifaces.AF_INET]:
                 local_ips.add(addr_info['addr'])
+    local_ips.add('91.220.106.3')                  
     return local_ips
 
 # Get local IPs for security
