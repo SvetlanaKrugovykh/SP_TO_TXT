@@ -82,6 +82,12 @@ data = {
 response = requests.post('http://localhost:8338/transcribe', files=files, data=data)
 result = response.json()
 text = result['translated_text']
+
+# for karaoke-reading
+data['include_words'] = 'true'
+response = requests.post('http://localhost:8338/transcribe', files=files, data=data)
+result = response.json()
+words = result.get('words', [])
 ```
 
 ### Пакетная обработка:

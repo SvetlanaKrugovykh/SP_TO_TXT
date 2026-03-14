@@ -91,6 +91,12 @@ data = {
 response = requests.post('http://localhost:8338/transcribe', files=files, data=data)
 result = response.json()
 print(result['translated_text'])
+
+# Optional: word-level timestamps for karaoke-style highlighting
+data['include_words'] = 'true'
+response = requests.post('http://localhost:8338/transcribe', files=files, data=data)
+result = response.json()
+print(result.get('words', [])[:5])
 ```
 
 ### Batch Processing
@@ -119,6 +125,13 @@ curl -X POST http://localhost:8338/transcribe \
   -F "segment_number=1" \
   -F "language=pl"
 
+# Send file for transcription with word-level timestamps
+curl -X POST http://localhost:8338/transcribe \
+  -F "file=@audio.wav" \
+  -F "client_id=test" \
+  -F "segment_number=1" \
+  -F "include_words=true"
+
 # Supported languages include:
 # pl (Polish), ru (Russian), en (English), de (German), fr (French), 
 # es (Spanish), it (Italian), pt (Portuguese), nl (Dutch), sv (Swedish),
@@ -132,6 +145,7 @@ curl -X POST http://localhost:8338/transcribe \
 - **Processing Time**: ~0.1-0.5 seconds per second of audio
 - **Memory Usage**: ~500MB for small model
 - **Startup Time**: ~1.3 seconds (first load only)
+- **Word Timestamps**: Available on demand via `include_words=true`; expect a small performance hit only for those requests
 
 ## 🔧 Configuration
 

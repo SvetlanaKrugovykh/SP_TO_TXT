@@ -3,11 +3,9 @@
 Optimized Faster-Whisper Service
 Single model instance for fast processing
 """
-import os
 import time
 import threading
-from typing import Optional, Tuple, Dict, Any
-from contextlib import contextmanager
+from typing import Optional, Tuple, Dict, Any, List
 
 try:
     from faster_whisper import WhisperModel
@@ -94,16 +92,40 @@ class FastWhisperService:
             finally:
                 self._loading = False
     
-    def transcribe(self, file_path: str, language: Optional[str] = None) -> Tuple[Optional[str], Optional[str]]:
+    def _extract_words(self, segments) -> List[Dict[str, Any]]:
+        """Extract word-level timestamps from whisper segments."""
+        words: List[Dict[str, Any]] = []
+
+        for segment in segments:
+            for word in getattr(segment, 'words', []) or []:
+                word_text = (getattr(word, 'word', '') or '').strip()
+                if not word_text:
+                    continue
+
+                words.append({
+                    'word': word_text,
+                    'start': round(float(getattr(word, 'start', 0.0) or 0.0), 3),
+                    'end': round(float(getattr(word, 'end', 0.0) or 0.0), 3)
+                })
+
+        return words
+
+    def transcribe(
+        self,
+        file_path: str,
+        language: Optional[str] = None,
+        include_words: bool = False
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
         """
         Transcribe audio file
         
         Args:
             file_path: Path to audio file
             language: Language code (None for auto-detection)
+            include_words: Include word-level timestamps in result
             
         Returns:
-            Tuple of (transcription_text, error_message)
+            Tuple of (transcription_result, error_message)
         """
         if not self._load_model():
             return None, "Model not available"
@@ -119,15 +141,24 @@ class FastWhisperService:
                 best_of=1,          # Faster
                 temperature=0.0,    # More stable
                 vad_filter=True,    # Voice activity detection
-                vad_parameters={"min_silence_duration_ms": 500}
+                vad_parameters={"min_silence_duration_ms": 500},
+                word_timestamps=include_words
             )
             
             # Collect transcription
+            segment_list = list(segments)
             transcription = ""
-            for segment in segments:
+            for segment in segment_list:
                 transcription += segment.text + " "
             
             transcription = transcription.strip()
+            result = {
+                'text': transcription,
+                'detected_language': getattr(info, 'language', None)
+            }
+
+            if include_words:
+                result['words'] = self._extract_words(segment_list)
             
             # Update statistics
             process_time = time.time() - start_time
@@ -135,7 +166,7 @@ class FastWhisperService:
             self.stats['total_time'] += process_time
             self.stats['average_time'] = self.stats['total_time'] / self.stats['total_processed']
             
-            return transcription, None
+            return result, None
             
         except Exception as e:
             self.stats['errors'] += 1

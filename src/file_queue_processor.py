@@ -163,10 +163,12 @@ class FileQueueProcessor:
                 raise ValueError("Failed to convert audio to WAV format")
             
             # Transcribe audio
-            transcription, error = whisper_service.transcribe(wav_file_path)
+            transcription_result, error = whisper_service.transcribe(wav_file_path)
             
             if error:
                 raise ValueError(f"Transcription error: {error}")
+
+            transcription = transcription_result['text']
             
             if not transcription or not transcription.strip():
                 raise ValueError("Empty transcription result")

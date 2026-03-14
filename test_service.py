@@ -153,6 +153,34 @@ def test_service():
                     print(f"   Total time: {end_time - start_time:.2f}s")
                     print(f"   Language: {result.get('language', 'unknown')}")
                     print(f"   Text: {result.get('translated_text', '')[:100]}...")
+
+                    print(f"\n7. Testing word timestamps with same file...")
+
+                    files = {
+                        'file': (test_file.name, open(test_file, 'rb'), 'audio/wav')
+                    }
+
+                    data = {
+                        'client_id': 'test_client',
+                        'segment_number': '3',
+                        'include_words': 'true'
+                    }
+
+                    start_time = time.time()
+                    response = requests.post(f"{base_url}/transcribe", files=files, data=data)
+                    end_time = time.time()
+
+                    files['file'][1].close()
+
+                    if response.status_code == 200:
+                        result = response.json()
+                        print(f"✅ Word timestamps successful")
+                        print(f"   Processing time: {result.get('processing_time', 0):.2f}s")
+                        print(f"   Total time: {end_time - start_time:.2f}s")
+                        print(f"   Words returned: {len(result.get('words', []))}")
+                    else:
+                        print(f"❌ Word timestamps failed: {response.status_code}")
+                        print(f"   Error: {response.text}")
                 else:
                     print(f"❌ Polish transcription failed: {response.status_code}")
                     print(f"   Error: {response.text}")

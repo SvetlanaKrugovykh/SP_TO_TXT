@@ -1,7 +1,6 @@
 # transformer.py
 import os
-import sys
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict, Any
 
 from fast_whisper_service import whisper_service
 from converters.audio_converter import convert_to_wav
@@ -27,16 +26,21 @@ def generate_filename(segment_number, clientId):
     segment_name = os.getenv('SEGMENT_NAME', 'segment')
     return f"{clientId}_{segment_name}_{segment_number}.wav"
     
-def transcribe_audio(file_path: str, language: Optional[str] = None) -> Tuple[Optional[str], Optional[str]]:
+def transcribe_audio(
+    file_path: str,
+    language: Optional[str] = None,
+    include_words: bool = False
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     """
     Transcribe audio file using faster-whisper service
     
     Args:
         file_path: Path to audio file
         language: Language code (None for auto-detection, e.g., 'pl', 'ru', 'en')
+        include_words: Include word-level timestamps in result
         
     Returns:
-        Tuple of (transcription_text, error_message)
+        Tuple of (transcription_result, error_message)
     """
     try:
         # Convert to WAV format if needed
@@ -45,7 +49,11 @@ def transcribe_audio(file_path: str, language: Optional[str] = None) -> Tuple[Op
             return None, "Failed to convert audio to WAV format"
         
         # Transcribe using the optimized service
-        transcription, error = whisper_service.transcribe(wav_file_path, language)
+        transcription, error = whisper_service.transcribe(
+            wav_file_path,
+            language,
+            include_words=include_words
+        )
         
         if error:
             print(f"Error in audio transcription: {error}")

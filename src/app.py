@@ -131,7 +131,8 @@ async def transcribe_endpoint(
     file: UploadFile = File(...),
     client_id: str = Form(...),  
     segment_number: str = Form(default='unknown'),
-    language: Optional[str] = Form(default=None)
+    language: Optional[str] = Form(default=None),
+    include_words: bool = Form(default=False)
 ):
     """
     Main transcription endpoint
@@ -167,6 +168,8 @@ async def transcribe_endpoint(
                  'haw' - Hawaiian, 'mi' - Maori, 'ln' - Lingala, 'so' - Somali,
                  'sn' - Shona, 'lb' - Luxembourgish
                  Use 'auto' or omit for automatic detection.
+            include_words: Return word-level timestamps for karaoke-style highlighting.
+                      Keep disabled unless needed, because it adds extra work.
     """
     start_time = time.time()
     service_stats['total_requests'] += 1
@@ -187,7 +190,11 @@ async def transcribe_endpoint(
             print("🌍 Using auto-detection")
         
         # Transcribe audio
-        transcription, error = transcribe_audio(filepath, target_language)
+        transcription_result, error = transcribe_audio(
+            filepath,
+            target_language,
+            include_words=include_words
+        )
         
         if error:
             service_stats['failed_requests'] += 1
@@ -196,7 +203,7 @@ async def transcribe_endpoint(
         
         # Log results if enabled
         if int(os.getenv('TRANSCRIPTION_OUT_LOG', '0')) == 1:
-            print(f"📝 Client: {client_id}, File: {filename}, Text: {transcription}")
+            print(f"📝 Client: {client_id}, File: {filename}, Text: {transcription_result['text']}")
         
         # Clean up uploaded file
         try:
@@ -208,14 +215,19 @@ async def transcribe_endpoint(
         service_stats['successful_requests'] += 1
         process_time = time.time() - start_time
         
-        return {
+        response = {
             "success": True,
-            "translated_text": transcription,
+            "translated_text": transcription_result["text"],
             "processing_time": round(process_time, 2),
             "filename": filename,
             "segment_number": segment_number,
             "language": target_language if target_language else "auto-detected"
         }
+
+        if include_words:
+            response["words"] = transcription_result.get("words", [])
+
+        return response
         
     except HTTPException:
         raise
@@ -229,13 +241,14 @@ async def transformation_flow(
     file: UploadFile = File(...),
     clientId: str = Form(...),  
     segment_number: str = Form(default='unknown'),
-    language: Optional[str] = Form(default=None)
+    language: Optional[str] = Form(default=None),
+    include_words: bool = Form(default=False)
 ):
     """
     Legacy endpoint for backward compatibility
     """
     print(f"🆔 clientId: {clientId}, 🌐 language: {language}")
-    return await transcribe_endpoint(file, clientId, segment_number, language)
+    return await transcribe_endpoint(file, clientId, segment_number, language, include_words)
 
 @app.get("/stats")
 async def get_stats():
