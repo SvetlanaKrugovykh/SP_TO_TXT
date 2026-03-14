@@ -12,6 +12,7 @@ from typing import Optional
 
 import netifaces
 from fastapi import FastAPI, HTTPException, Request, UploadFile, Form, File, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 # Add current directory to path
@@ -26,6 +27,23 @@ app = FastAPI(
     title="Speech-to-Text Service",
     description="Optimized service for audio transcription using faster-whisper",
     version="2.0.0"
+)
+
+cors_allow_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        'CORS_ALLOW_ORIGINS',
+        'http://localhost:3000,http://127.0.0.1:3000'
+    ).split(',')
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_allow_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Global variables
